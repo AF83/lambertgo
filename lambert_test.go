@@ -177,11 +177,21 @@ func ExamplePoint_ToWGS84() {
 	// Latitude:0.866549 - Longitude:0.04483
 }
 
-func ExamplePoint_ToLambert() {
+func IGNPoint_ToLambert() {
 
 	var point *Point = &Point{0.14551209900, 0.87266462600, 0, Radian}
 	point.ToLambert(LambertI)
 	fmt.Printf("X:%.4f - Y:%.4f", point.X, point.Y)
 	// Output:
-	// X:1029705.0818 - Y:272723.8510
+	// X:1029705.0819 - Y:272723.8473
+}
+
+func ExamplePoint_ToLambert() {
+
+	var point *Point = &Point{2.34784143, 48.8706224178, 0, Degree}
+	point.ToRadian()
+	point.ToLambert(LambertII_e)
+	fmt.Printf("X:%.4f - Y:%.4f", point.X, point.Y)
+	// Output:
+	// X:600830.8100 - Y:2430255.8600
 }

@@ -124,7 +124,51 @@ func (pt *Point) ToWGS84(zone Zone) {
 
 }
 
+/*
+ *  http://geodesie.ign.fr/contenu/fichiers/documentation/pedagogiques/TransformationsCoordonneesGeodesiques.pdf
+ *  3.4 Coordonnées géographiques Lambert
+ */
+func (pt *Point) geographicToLambert(zone Zone, lon_merid float64) {
+	long := pt.X
+	lat := pt.Y
+	n := lambertN[zone]
+	c := lambertC[zone]
+	e := EWGS84
+	xs := lambertXs[zone]
+	ys := lambertYs[zone]
+
+	lat_iso := latitudeISOFromLatitude(lat, e)
+
+	pt.X = xs + c*math.Exp(-n*lat_iso)*math.Sin(n*(long-lon_merid))
+	pt.Y = ys - c*math.Exp(-n*lat_iso)*math.Cos(n*(long-lon_merid))
+	pt.Unit = Meter
+
+}
+
+// ToLambert implements WGS84 -> Lambert2_E
 func (pt *Point) ToLambert(zone Zone) {
+
+	if pt.Unit != Radian {
+		fmt.Errorf("Could not transform Point which is not in RADIAN\n")
+		return
+	}
+	if Lambert93 == zone {
+		fmt.Errorf("NOPE, Lambert 93 is not supported yet.\n")
+	} else {
+		pt.X = pt.X - GreenwichLongitudeMeridian
+		pt.geographicToCartesian(AWGS84, EWGS84)
+		pt.X += 168
+		pt.Y += 60
+		pt.Z -= 320
+		pt.cartesianToGeographic(ParisLongitudeMeridian, AWGS84, EWGS84, DefaultEPS)
+	}
+
+	pt.geographicToLambert(zone, ParisLongitudeMeridian)
+
+}
+
+// ToLambertAlg003 implements Alg003, pretty useless
+func (pt *Point) ToLambertAlg003(zone Zone) {
 	if pt.Unit != Radian {
 		fmt.Errorf("Could not transform Point which is not in RADIAN. See Point.ToRadian\n")
 	}
